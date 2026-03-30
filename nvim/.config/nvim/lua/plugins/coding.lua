@@ -1,18 +1,19 @@
 return {
 	-- Detect tabstop and shiftwidth automatically
-	{ "tpope/vim-sleuth", event = { "BufReadPre", "BufNewFile" } },
+	{ "tpope/vim-sleuth", event = { "BufReadPost", "BufNewFile" } },
 
 	-- 1. MASON
 	{
 		"williamboman/mason.nvim",
 		cmd = "Mason",
+		keys = { { "<leader>m", "<cmd>Mason<cr>", desc = "Mason Manager" } },
 		opts = { ui = { border = "rounded" } },
 	},
 
 	-- 2. LSP CONFIG
 	{
 		"neovim/nvim-lspconfig",
-		event = { "BufReadPre", "BufNewFile" },
+		event = { "BufReadPost", "BufNewFile" },
 		dependencies = {
 			"williamboman/mason.nvim",
 			"williamboman/mason-lspconfig.nvim",
@@ -40,19 +41,19 @@ return {
 					"css-lsp",
 					"tailwindcss-language-server",
 					"pyright",
-					"typescript-language-server",
-					"json-lsp",
-					"lua-language-server",
-					"emmet-language-server",
-					"prettierd",
-					"eslint_d",
-					"stylua",
 					"black",
 					"isort",
 					"pylint",
+					"typescript-language-server",
+					"json-lsp",
+					"prettierd",
+					"eslint_d",
+					"lua-language-server",
+					"stylua",
 					"dockerls",
 					"docker-compose-language-service",
 					"dockerfile-language-server",
+					"bash-language-server",
 				},
 			})
 
@@ -60,17 +61,6 @@ return {
 				handlers = {
 					function(server_name)
 						local opts = { capabilities = capabilities, on_attach = on_attach }
-						if server_name == "emmet_language_server" then
-							opts.filetypes = {
-								"html",
-								"typescriptreact",
-								"javascriptreact",
-								"css",
-								"sass",
-								"scss",
-								"less",
-							}
-						end
 						if server_name == "lua_ls" then
 							opts.settings = { Lua = { diagnostics = { globals = { "vim" } } } }
 						end
@@ -113,40 +103,6 @@ return {
 			require("luasnip.loaders.from_vscode").lazy_load()
 
 			cmp.setup({
-				sorting = {
-					priority_weight = 2,
-					comparators = {
-						-- 1. EMMET SPECIFIC COMPARATOR
-						-- This function checks the internal client name.
-						-- If it's "emmet_language_server", it forces it to the top.
-						function(entry1, entry2)
-							local function is_emmet(entry)
-								return entry.source.name == "nvim_lsp"
-									and entry.source.source.client
-									and entry.source.source.client.name == "emmet_language_server"
-							end
-
-							if is_emmet(entry1) and not is_emmet(entry2) then
-								return true
-							end
-							if is_emmet(entry2) and not is_emmet(entry1) then
-								return false
-							end
-							return nil
-						end,
-
-						-- 2. Standard comparators
-						cmp.config.compare.offset,
-						cmp.config.compare.exact,
-						cmp.config.compare.score,
-						cmp.config.compare.recently_used,
-						cmp.config.compare.locality,
-						cmp.config.compare.kind,
-						cmp.config.compare.sort_text,
-						cmp.config.compare.length,
-						cmp.config.compare.order,
-					},
-				},
 				snippet = {
 					expand = function(args)
 						luasnip.lsp_expand(args.body)
@@ -190,6 +146,7 @@ return {
 	{
 		"stevearc/conform.nvim",
 		event = { "BufWritePre" },
+		cmd = { "ConformInfo" },
 		keys = {
 			{
 				"<leader>f",
@@ -215,7 +172,7 @@ return {
 	-- Linting
 	{
 		"mfussenegger/nvim-lint",
-		event = { "BufReadPre", "BufNewFile" },
+		event = { "BufReadPost", "BufNewFile" },
 		config = function()
 			local lint = require("lint")
 			lint.linters_by_ft = {
