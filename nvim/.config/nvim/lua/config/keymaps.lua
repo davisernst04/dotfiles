@@ -3,7 +3,6 @@ local map = vim.keymap.set
 map("n", "<Esc>", "<cmd>nohlsearch<CR>")
 map("n", "<leader>w", "<cmd>w<CR>", { desc = "Save" })
 map("n", "<leader>q", "<cmd>q<CR>", { desc = "Quit" })
-map("n", "<leader>m", "<cmd>Mason<cr>", { desc = "Mason Manager" })
 
 -- Better split navigation
 map("n", "<C-h>", "<C-w><C-h>", { desc = "Move Left" })
