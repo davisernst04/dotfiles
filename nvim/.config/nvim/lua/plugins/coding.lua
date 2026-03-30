@@ -19,20 +19,18 @@ return {
 			"WhoIsSethDaniel/mason-tool-installer.nvim",
 			"hrsh7th/cmp-nvim-lsp",
 		},
+		keys = {
+			{ "gd", vim.lsp.buf.definition, desc = "Goto Definition" },
+			{ "gr", vim.lsp.buf.references, desc = "References" },
+			{ "<leader>rn", vim.lsp.buf.rename, desc = "Rename" },
+			{ "<leader>ca", vim.lsp.buf.code_action, desc = "Code Action" },
+			{ "K", vim.lsp.buf.hover, desc = "Hover" },
+			{ "[d", vim.diagnostic.goto_prev, desc = "Prev Diagnostic" },
+			{ "]d", vim.diagnostic.goto_next, desc = "Next Diagnostic" },
+		},
 		config = function()
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
-			local on_attach = function(_, bufnr)
-				local map = function(keys, func, desc)
-					vim.keymap.set("n", keys, func, { buffer = bufnr, desc = "LSP: " .. desc })
-				end
-				map("gd", vim.lsp.buf.definition, "Goto Definition")
-				map("gr", vim.lsp.buf.references, "References")
-				map("<leader>rn", vim.lsp.buf.rename, "Rename")
-				map("<leader>ca", vim.lsp.buf.code_action, "Code Action")
-				map("K", vim.lsp.buf.hover, "Hover")
-				map("[d", vim.diagnostic.goto_prev, "Prev Diagnostic")
-				map("]d", vim.diagnostic.goto_next, "Next Diagnostic")
-			end
+			local on_attach = function(_, bufnr) end
 
 			require("mason-tool-installer").setup({
 				ensure_installed = {
