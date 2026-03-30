@@ -1,6 +1,6 @@
 return {
 	-- Detect tabstop and shiftwidth automatically
-	{ "tpope/vim-sleuth", event = { "BufReadPre", "BufNewFile" } },
+	{ "tpope/vim-sleuth", event = { "BufReadPost", "BufNewFile" } },
 
 	-- 1. MASON
 	{
@@ -12,27 +12,25 @@ return {
 	-- 2. LSP CONFIG
 	{
 		"neovim/nvim-lspconfig",
-		event = { "BufReadPre", "BufNewFile" },
+		event = { "BufReadPost", "BufNewFile" },
 		dependencies = {
 			"williamboman/mason.nvim",
 			"williamboman/mason-lspconfig.nvim",
 			"WhoIsSethDaniel/mason-tool-installer.nvim",
 			"hrsh7th/cmp-nvim-lsp",
 		},
+		keys = {
+			{ "gd", vim.lsp.buf.definition, desc = "Goto Definition" },
+			{ "gr", vim.lsp.buf.references, desc = "References" },
+			{ "<leader>rn", vim.lsp.buf.rename, desc = "Rename" },
+			{ "<leader>ca", vim.lsp.buf.code_action, desc = "Code Action" },
+			{ "K", vim.lsp.buf.hover, desc = "Hover" },
+			{ "[d", vim.diagnostic.goto_prev, desc = "Prev Diagnostic" },
+			{ "]d", vim.diagnostic.goto_next, desc = "Next Diagnostic" },
+		},
 		config = function()
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
-			local on_attach = function(_, bufnr)
-				local map = function(keys, func, desc)
-					vim.keymap.set("n", keys, func, { buffer = bufnr, desc = "LSP: " .. desc })
-				end
-				map("gd", vim.lsp.buf.definition, "Goto Definition")
-				map("gr", vim.lsp.buf.references, "References")
-				map("<leader>rn", vim.lsp.buf.rename, "Rename")
-				map("<leader>ca", vim.lsp.buf.code_action, "Code Action")
-				map("K", vim.lsp.buf.hover, "Hover")
-				map("[d", vim.diagnostic.goto_prev, "Prev Diagnostic")
-				map("]d", vim.diagnostic.goto_next, "Next Diagnostic")
-			end
+			local on_attach = function(_, bufnr) end
 
 			require("mason-tool-installer").setup({
 				ensure_installed = {
@@ -40,19 +38,19 @@ return {
 					"css-lsp",
 					"tailwindcss-language-server",
 					"pyright",
-					"typescript-language-server",
-					"json-lsp",
-					"lua-language-server",
-					"emmet-language-server",
-					"prettierd",
-					"eslint_d",
-					"stylua",
 					"black",
 					"isort",
 					"pylint",
+					"typescript-language-server",
+					"json-lsp",
+					"prettierd",
+					"eslint_d",
+					"lua-language-server",
+					"stylua",
 					"dockerls",
 					"docker-compose-language-service",
 					"dockerfile-language-server",
+					"bash-language-server",
 				},
 			})
 
@@ -60,17 +58,6 @@ return {
 				handlers = {
 					function(server_name)
 						local opts = { capabilities = capabilities, on_attach = on_attach }
-						if server_name == "emmet_language_server" then
-							opts.filetypes = {
-								"html",
-								"typescriptreact",
-								"javascriptreact",
-								"css",
-								"sass",
-								"scss",
-								"less",
-							}
-						end
 						if server_name == "lua_ls" then
 							opts.settings = { Lua = { diagnostics = { globals = { "vim" } } } }
 						end
@@ -113,40 +100,6 @@ return {
 			require("luasnip.loaders.from_vscode").lazy_load()
 
 			cmp.setup({
-				sorting = {
-					priority_weight = 2,
-					comparators = {
-						-- 1. EMMET SPECIFIC COMPARATOR
-						-- This function checks the internal client name.
-						-- If it's "emmet_language_server", it forces it to the top.
-						function(entry1, entry2)
-							local function is_emmet(entry)
-								return entry.source.name == "nvim_lsp"
-									and entry.source.source.client
-									and entry.source.source.client.name == "emmet_language_server"
-							end
-
-							if is_emmet(entry1) and not is_emmet(entry2) then
-								return true
-							end
-							if is_emmet(entry2) and not is_emmet(entry1) then
-								return false
-							end
-							return nil
-						end,
-
-						-- 2. Standard comparators
-						cmp.config.compare.offset,
-						cmp.config.compare.exact,
-						cmp.config.compare.score,
-						cmp.config.compare.recently_used,
-						cmp.config.compare.locality,
-						cmp.config.compare.kind,
-						cmp.config.compare.sort_text,
-						cmp.config.compare.length,
-						cmp.config.compare.order,
-					},
-				},
 				snippet = {
 					expand = function(args)
 						luasnip.lsp_expand(args.body)
@@ -190,9 +143,10 @@ return {
 	{
 		"stevearc/conform.nvim",
 		event = { "BufWritePre" },
+		cmd = { "ConformInfo" },
 		keys = {
 			{
-				"<leader>f",
+				"<leader>cf",
 				function()
 					require("conform").format({ async = true, lsp_fallback = true })
 				end,
@@ -215,7 +169,7 @@ return {
 	-- Linting
 	{
 		"mfussenegger/nvim-lint",
-		event = { "BufReadPre", "BufNewFile" },
+		event = { "BufReadPost", "BufNewFile" },
 		config = function()
 			local lint = require("lint")
 			lint.linters_by_ft = {
@@ -252,5 +206,17 @@ return {
 				},
 			},
 		},
+	},
+
+	-- Context-aware commenting (integrates with native gc)
+	{
+		"JoosepAlviste/nvim-ts-context-commentstring",
+		opts = {
+			enable_autocmd = false,
+		},
+		config = function(_, opts)
+			vim.g.skip_ts_context_commentstring_module = true
+			require("ts_context_commentstring").setup(opts)
+		end,
 	},
 }

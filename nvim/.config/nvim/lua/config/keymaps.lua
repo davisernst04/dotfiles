@@ -3,13 +3,6 @@ local map = vim.keymap.set
 map("n", "<Esc>", "<cmd>nohlsearch<CR>")
 map("n", "<leader>w", "<cmd>w<CR>", { desc = "Save" })
 map("n", "<leader>q", "<cmd>q<CR>", { desc = "Quit" })
-map("n", "<leader>m", "<cmd>Mason<cr>", { desc = "Mason Manager" })
-
--- Better split navigation
-map("n", "<C-h>", "<C-w><C-h>", { desc = "Move Left" })
-map("n", "<C-l>", "<C-w><C-l>", { desc = "Move Right" })
-map("n", "<C-j>", "<C-w><C-j>", { desc = "Move Down" })
-map("n", "<C-k>", "<C-w><C-k>", { desc = "Move Up" })
 
 -- Resize splits with arrow keys
 map("n", "<Up>", ":resize +2<CR>", { desc = "Resize Up" })

@@ -54,6 +54,7 @@ return {
 	-- Search and Replace (Refactoring Tool)
 	{
 		"nvim-pack/nvim-spectre",
+		cmd = "Spectre",
 		dependencies = { "nvim-lua/plenary.nvim" },
 		keys = {
 			{
@@ -69,8 +70,6 @@ return {
 	-- Flash Navigation
 	{
 		"folke/flash.nvim",
-		event = "VeryLazy",
-		opts = {},
 		keys = {
 			{
 				"s",
@@ -99,15 +98,23 @@ return {
 		keys = { { "<leader>gg", "<cmd>LazyGit<cr>", desc = "LazyGit" } },
 	},
 
+	-- Auto Tag
+	{
+		"windwp/nvim-ts-autotag",
+		event = { "BufReadPost", "BufNewFile" },
+		config = function()
+			require("nvim-ts-autotag").setup()
+		end,
+	},
+
 	-- Treesitter & Text Objects
 	{
 		"nvim-treesitter/nvim-treesitter",
 		dependencies = {
-			"windwp/nvim-ts-autotag",
 			"nvim-treesitter/nvim-treesitter-textobjects", -- Syntax aware selection
 		},
 		build = ":TSUpdate",
-		event = { "BufReadPre", "BufNewFile" },
+		event = { "BufReadPost", "BufNewFile" },
 		config = function()
 			require("nvim-treesitter.configs").setup({
 				ensure_installed = {
@@ -133,7 +140,6 @@ return {
 					disable = { "python" },
 				},
 
-				autotag = { enable = true },
 				-- Text Objects (daf, cif, etc.)
 				textobjects = {
 					select = {
@@ -165,7 +171,7 @@ return {
 				desc = "Harpoon Add",
 			},
 			{
-				"<leader>h",
+				"<C-e>",
 				function()
 					require("harpoon").ui:toggle_quick_menu(require("harpoon"):list())
 				end,
@@ -194,7 +200,7 @@ return {
 	-- GitSigns
 	{
 		"lewis6991/gitsigns.nvim",
-		event = "BufReadPre",
+		event = { "BufReadPre", "BufNewFile" },
 		opts = {
 			on_attach = function(bufnr)
 				local gs = require("gitsigns")
@@ -237,19 +243,11 @@ return {
 		config = function()
 			require("mini.ai").setup({ n_lines = 500 })
 			require("mini.surround").setup()
-			require("mini.comment").setup({
-				options = {
-					custom_commentstring = function()
-						return require("ts_context_commentstring.internal").calculate_commentstring()
-							or vim.bo.commentstring
-					end,
-				},
-			})
 		end,
 	},
 
 	{ "mbbill/undotree", keys = { { "<leader>u", "<cmd>UndotreeToggle<cr>", desc = "UndoTree" } } },
-	{ "folke/todo-comments.nvim", event = "BufReadPre", dependencies = { "nvim-lua/plenary.nvim" }, opts = {} },
+	{ "folke/todo-comments.nvim", event = { "BufReadPost", "BufNewFile" }, dependencies = { "nvim-lua/plenary.nvim" }, opts = {} },
 	{ "folke/trouble.nvim", cmd = "Trouble", opts = {} },
 	{
 		"christoomey/vim-tmux-navigator",

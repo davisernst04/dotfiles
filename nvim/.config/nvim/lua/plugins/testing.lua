@@ -7,15 +7,14 @@ return {
 			"antoinemadec/FixCursorHold.nvim",
 			"nvim-neotest/neotest-python",
 		},
-		opts = {
-			adapters = {
-				["neotest-python"] = {
-					dap = { justMyCode = false },
-				},
-			},
-		},
+		opts = {},
 		config = function(_, opts)
 			local neotest = require("neotest")
+			opts.adapters = {
+				require("neotest-python")({
+					dap = { justMyCode = false },
+				}),
+			}
 			neotest.setup(opts)
 
 			-- Keymaps

@@ -17,10 +17,10 @@ return {
 			sections = { lualine_c = { { "filename", path = 1 } } },
 		},
 	},
-	-- Indent Guides (Lazy Loaded now)
+	-- Indent Guides
 	{
 		"lukas-reineke/indent-blankline.nvim",
-		event = { "BufReadPost", "BufNewFile" },
+		event = "VeryLazy",
 		main = "ibl",
 		opts = { indent = { char = "│" }, scope = { enabled = false } },
 	},
@@ -33,7 +33,7 @@ return {
 	-- Color Highlighting
 	{
 		"NvChad/nvim-colorizer.lua",
-		ft = { "css", "scss", "html", "javascript", "typescriptreact" },
+		event = "VeryLazy",
 		opts = { user_default_options = { tailwind = true, css = true } },
 	},
 }
