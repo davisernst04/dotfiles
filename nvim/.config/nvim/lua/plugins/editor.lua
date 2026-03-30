@@ -54,6 +54,7 @@ return {
 	-- Search and Replace (Refactoring Tool)
 	{
 		"nvim-pack/nvim-spectre",
+		cmd = "Spectre",
 		dependencies = { "nvim-lua/plenary.nvim" },
 		keys = {
 			{
@@ -69,8 +70,6 @@ return {
 	-- Flash Navigation
 	{
 		"folke/flash.nvim",
-		event = "VeryLazy",
-		opts = {},
 		keys = {
 			{
 				"s",
@@ -107,7 +106,7 @@ return {
 			"nvim-treesitter/nvim-treesitter-textobjects", -- Syntax aware selection
 		},
 		build = ":TSUpdate",
-		event = { "BufReadPre", "BufNewFile" },
+		event = { "BufReadPost", "BufNewFile" },
 		config = function()
 			require("nvim-treesitter.configs").setup({
 				ensure_installed = {
@@ -194,7 +193,7 @@ return {
 	-- GitSigns
 	{
 		"lewis6991/gitsigns.nvim",
-		event = "BufReadPre",
+		event = { "BufReadPre", "BufNewFile" },
 		opts = {
 			on_attach = function(bufnr)
 				local gs = require("gitsigns")
@@ -249,7 +248,7 @@ return {
 	},
 
 	{ "mbbill/undotree", keys = { { "<leader>u", "<cmd>UndotreeToggle<cr>", desc = "UndoTree" } } },
-	{ "folke/todo-comments.nvim", event = "BufReadPre", dependencies = { "nvim-lua/plenary.nvim" }, opts = {} },
+	{ "folke/todo-comments.nvim", event = { "BufReadPost", "BufNewFile" }, dependencies = { "nvim-lua/plenary.nvim" }, opts = {} },
 	{ "folke/trouble.nvim", cmd = "Trouble", opts = {} },
 	{
 		"christoomey/vim-tmux-navigator",
