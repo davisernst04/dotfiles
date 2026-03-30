@@ -1,37 +1,35 @@
-# Neovim Config Optimization Design Spec
+# Neovim Configuration Optimization Design
 
-## 1. Goal
-Build a minimal, fast, and maintainable Neovim configuration based on the user's current `lazy.nvim` setup. The configuration will prioritize performance (startup time < 30ms) while retaining essential IDE-like features for Python, Web Development, DevOps, and Scala.
+## Goal
+Perform a targeted surgical refactor of the Neovim configuration to fix latent bugs, resolve keymap conflicts, and prune redundant configurations while keeping the existing structure intact.
 
-## 2. Architecture & File Structure
-The project will adopt an **Optimized Custom Config** architecture, utilizing strict lazy-loading.
+## Proposed Changes
 
-*   `init.lua`: Minimal bootstrap for `lazy.nvim` and basic option loading.
-*   `lua/config/options.lua`: Core Neovim options (loads immediately).
-*   `lua/config/keymaps.lua`: Global keymaps (loads immediately).
-*   `lua/config/autocmds.lua`: (New) Autocommands for yank highlighting, format-on-save, and window resizing (loads immediately).
-*   `lua/plugins/*.lua`: Logical groupings of plugins.
+### 1. Fix Neotest Configuration for Python
+**Problem:** The `neotest` configuration in `lua/plugins/testing.lua` incorrectly attempts to load the `neotest-python` adapter by passing a table instead of invoking the required module.
+**Solution:**
+Update the `adapters` table in `testing.lua` to correctly require and initialize the `neotest-python` plugin:
+```lua
+adapters = {
+  require("neotest-python")({
+    dap = { justMyCode = false },
+  }),
+}
+```
 
-## 3. Aggressive Lazy Loading Strategy
-To achieve near-zero startup time, plugins will be loaded based on specific triggers:
+### 2. Modernize Commenting and Fix Dependency Errors
+**Problem:** `mini.comment` is configured in `lua/plugins/editor.lua` to use `ts_context_commentstring`, but the `ts_context_commentstring` plugin is not installed. This causes evaluation errors. Furthermore, Neovim 0.10+ includes native commenting (`gc`).
+**Solution:**
+- Remove `mini.comment` from the `mini.nvim` configuration in `editor.lua`.
+- Add `JoosepAlviste/nvim-ts-context-commentstring` as a standalone plugin in `coding.lua` (or `editor.lua`).
+- Configure `nvim-ts-context-commentstring` to integrate with Neovim's native commenting (`vim.g.skip_ts_context_commentstring_module = true` and `require('ts_context_commentstring').setup { enable_autocmd = false }`).
 
-*   **UI Plugins** (`tokyonight`, `lualine`, `which-key`, `indent-blankline`, `colorizer`): Load on `VeryLazy` or `UIEnter`.
-*   **Editor Navigation & Search** (`telescope`, `neo-tree`, `harpoon`, `flash`, `spectre`, `lazygit`, `undotree`): Load *only* on their respective commands (`cmd`) or keys (`keys`).
-*   **Coding & Completion** (`nvim-cmp`, `autopairs`, `copilot`): Load strictly on `InsertEnter`.
-*   **Language Intelligence** (`nvim-lspconfig`, `nvim-treesitter`, `mason`): Load on `BufReadPre` and `BufNewFile`.
-*   **Formatting & Linting** (`conform`, `nvim-lint`): Trigger specifically on `BufWritePre` or by filetype (`ft`).
+### 3. Resolve Window Navigation Keymap Conflict
+**Problem:** `lua/config/keymaps.lua` maps `<C-h/j/k/l>` to native Neovim split navigation, conflicting with the exact same mappings defined for `vim-tmux-navigator` in `lua/plugins/editor.lua`.
+**Solution:**
+Remove the redundant split navigation keymaps from `lua/config/keymaps.lua`. `vim-tmux-navigator` is already configured in `editor.lua` to handle these keystrokes for both Neovim splits and Tmux panes.
 
-## 4. Optimizations
-*   **Dependency Pruning**: Ensure `mason-tool-installer` only installs the essential tools for the selected stack:
-    *   *Python*: `pyright`, `black`, `isort`, `pylint`.
-    *   *Web Dev*: `html-lsp`, `css-lsp`, `tailwindcss-language-server`, `typescript-language-server`, `json-lsp`, `emmet-language-server`, `prettierd`, `eslint_d`.
-    *   *DevOps*: `dockerls`, `docker-compose-language-service`, `dockerfile-language-server`, `bashls`.
-    *   *Scala*: `metals` (via `nvim-metals` or basic `lspconfig`).
-    *   *Core*: `stylua`, `lua-language-server`.
-*   **Keymap Isolation**: Move all plugin-specific keymaps from `keymaps.lua` into their respective `lazy.nvim` definitions under the `keys` table, preventing plugins from loading just to define keymaps.
-*   **Module Review**: Refine configurations for `mini.nvim` modules to ensure they don't break the `VeryLazy` boundary.
-
-## 5. Success Criteria
-*   The `init.lua` is clean and declarative.
-*   The `lazy.nvim` profiler shows a startup time of < 30ms (excluding the time to load the first buffer).
-*   LSP, autocompletion, formatting, and linting work out of the box for the specified languages.
+## Success Criteria
+- Neotest can successfully discover and run Python tests without adapter initialization errors.
+- Context-aware commenting works natively (e.g., in JSX/TSX) without `mini.comment` errors.
+- Window navigation using `<C-h/j/k/l>` behaves predictably, seamlessly moving between Neovim splits (and Tmux panes).
