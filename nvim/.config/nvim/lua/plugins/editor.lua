@@ -98,11 +98,19 @@ return {
 		keys = { { "<leader>gg", "<cmd>LazyGit<cr>", desc = "LazyGit" } },
 	},
 
+	-- Auto Tag
+	{
+		"windwp/nvim-ts-autotag",
+		event = { "BufReadPost", "BufNewFile" },
+		config = function()
+			require("nvim-ts-autotag").setup()
+		end,
+	},
+
 	-- Treesitter & Text Objects
 	{
 		"nvim-treesitter/nvim-treesitter",
 		dependencies = {
-			"windwp/nvim-ts-autotag",
 			"nvim-treesitter/nvim-treesitter-textobjects", -- Syntax aware selection
 		},
 		build = ":TSUpdate",
@@ -132,7 +140,6 @@ return {
 					disable = { "python" },
 				},
 
-				autotag = { enable = true },
 				-- Text Objects (daf, cif, etc.)
 				textobjects = {
 					select = {
