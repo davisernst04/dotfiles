@@ -1,0 +1,220 @@
+add_newline = false 
+# =============================================================================
+format = """
+$os$directory$git_branch$git_status$fill$nodejs$python$rust$golang$c$cpp$java$ruby$docker_context
+$character"""
+
+# This invisible module pushes everything after it to the right side of the terminal
+[fill]
+symbol = " "
+
+# =============================================================================
+# CORE MODULES & CATPPUCCIN MACCHIATO COLORS
+# =============================================================================
+[os]
+disabled = true 
+style = "bold #8aadf4" # Macchiato Blue
+
+[directory]
+style = "bold #8aadf4" # Macchiato Blue
+read_only = " 󰌾"
+truncation_length = 3
+truncate_to_repo = true
+
+[git_branch]
+symbol = " "
+style = "bold #c6a0f6"
+format = '[$symbol$branch]($style) '
+
+[git_status]
+format = '$all_status$ahead_behind'
+
+untracked = "[ ${count}](bold #8bd5ca) " 
+modified  = "[ ${count}](bold #eed49f) " 
+staged    = "[ ${count}](bold #a6da95) " 
+deleted   = "[ ${count}](bold #ed8796) " 
+renamed   = "[󰑕 ${count}](bold #c6a0f6) "
+conflicted= "[ ${count}](bold #ed8796) " 
+
+# Keep the ahead/behind arrows clean and Blue
+ahead = "[⇡${count}](bold #8aadf4) "       
+behind = "[⇣${count}](bold #8aadf4) "      
+diverged = "[⇕⇡${ahead_count}⇣${behind_count}](bold #8aadf4) "
+
+[character]
+# Green arrow for success, Red X for error, Yellow arrow for Vim Command Mode
+success_symbol = "[❯](bold #a6da95)"
+error_symbol = "[✖](bold #ed8796)"
+vicmd_symbol = "[❮](bold #eed49f)"
+
+# =============================================================================
+# YOUR NERD FONT SYMBOLS & CUSTOM FORMATS
+# =============================================================================
+[aws]
+symbol = " "
+[buf]
+symbol = " "
+[bun]
+symbol = " "
+
+# ---- Cleaned Right-Side Modules ----
+[c]
+symbol = " "
+format = '[$symbol$version]($style) '
+
+[cpp]
+symbol = " "
+format = '[$symbol$version]($style) '
+
+[docker_context]
+symbol = " "
+format = '[$symbol$context]($style) ' # Docker uses $context instead of $version
+
+[golang]
+symbol = " "
+format = '[$symbol$version]($style) '
+
+[java]
+symbol = " "
+format = '[$symbol$version]($style) '
+
+[nodejs]
+symbol = " "
+format = '[$symbol$version]($style) '
+
+[python]
+symbol = " "
+format = '[$symbol$version]($style) '
+
+[ruby]
+symbol = " "
+format = '[$symbol$version]($style) '
+
+[rust]
+symbol = "󱘗 "
+format = '[$symbol$version]($style) '
+# ------------------------------------
+
+[cmake]
+symbol = " "
+[conda]
+symbol = " "
+[crystal]
+symbol = " "
+[dart]
+symbol = " "
+[deno]
+symbol = " "
+[elixir]
+symbol = " "
+[elm]
+symbol = " "
+[fennel]
+symbol = " "
+[fortran]
+symbol = " "
+[fossil_branch]
+symbol = " "
+[gcloud]
+symbol = " "
+[git_commit]
+tag_symbol = '  '
+[gradle]
+symbol = " "
+[guix_shell]
+symbol = " "
+[haskell]
+symbol = " "
+[haxe]
+symbol = " "
+[hg_branch]
+symbol = " "
+[hostname]
+ssh_symbol = " "
+[julia]
+symbol = " "
+[kotlin]
+symbol = " "
+[lua]
+symbol = " "
+[memory_usage]
+symbol = "󰍛 "
+[meson]
+symbol = "󰔷 "
+[nim]
+symbol = "󰆥 "
+[nix_shell]
+symbol = " "
+[package]
+symbol = "󰏗 "
+[perl]
+symbol = " "
+[php]
+symbol = " "
+[pijul_channel]
+symbol = " "
+[pixi]
+symbol = "󰏗 "
+[rlang]
+symbol = "󰟔 "
+[scala]
+symbol = " "
+[status]
+symbol = " "
+[swift]
+symbol = " "
+[xmake]
+symbol = " "
+[zig]
+symbol = " "
+
+[os.symbols]
+Alpaquita = " "
+Alpine = " "
+AlmaLinux = " "
+Amazon = " "
+Android = " "
+AOSC = " "
+Arch = " "
+Artix = " "
+CachyOS = " "
+CentOS = " "
+Debian = " "
+DragonFly = " "
+Elementary = " "
+Emscripten = " "
+EndeavourOS = " "
+Fedora = " "
+FreeBSD = " "
+Garuda = "󰛓 "
+Gentoo = " "
+HardenedBSD = "󰞌 "
+Illumos = "󰈸 "
+Ios = "󰀷 "
+Kali = " "
+Linux = " "
+Mabox = " "
+Macos = " "
+Manjaro = " "
+Mariner = " "
+MidnightBSD = " "
+Mint = " "
+NetBSD = " "
+NixOS = " "
+Nobara = " "
+OpenBSD = "󰈺 "
+openSUSE = " "
+OracleLinux = "󰌷 "
+Pop = " "
+Raspbian = " "
+Redhat = " "
+RedHatEnterprise = " "
+RockyLinux = " "
+Redox = "󰀘 "
+Solus = "󰠳 "
+SUSE = " "
+Ubuntu = " "
+Unknown = " "
+Void = " "
+Windows = "󰍲 "
+Zorin = " "
