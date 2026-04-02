@@ -1,22 +1,18 @@
 add_newline = false 
-# =============================================================================
+
 format = """
 $os$directory$git_branch$git_status$fill$nodejs$python$rust$golang$c$cpp$java$ruby$docker_context
-$character"""
+$cmd_duration$character"""
 
-# This invisible module pushes everything after it to the right side of the terminal
 [fill]
 symbol = " "
 
-# =============================================================================
-# CORE MODULES & CATPPUCCIN MACCHIATO COLORS
-# =============================================================================
 [os]
 disabled = true 
-style = "bold #8aadf4" # Macchiato Blue
+style = "bold #8aadf4"
 
 [directory]
-style = "bold #8aadf4" # Macchiato Blue
+style = "bold #8aadf4"
 read_only = " 󰌾"
 truncation_length = 3
 truncate_to_repo = true
@@ -36,20 +32,15 @@ deleted   = "[ ${count}](bold #ed8796) "
 renamed   = "[󰑕 ${count}](bold #c6a0f6) "
 conflicted= "[ ${count}](bold #ed8796) " 
 
-# Keep the ahead/behind arrows clean and Blue
 ahead = "[⇡${count}](bold #8aadf4) "       
 behind = "[⇣${count}](bold #8aadf4) "      
 diverged = "[⇕⇡${ahead_count}⇣${behind_count}](bold #8aadf4) "
 
 [character]
-# Green arrow for success, Red X for error, Yellow arrow for Vim Command Mode
 success_symbol = "[❯](bold #a6da95)"
 error_symbol = "[✖](bold #ed8796)"
 vicmd_symbol = "[❮](bold #eed49f)"
 
-# =============================================================================
-# YOUR NERD FONT SYMBOLS & CUSTOM FORMATS
-# =============================================================================
 [aws]
 symbol = " "
 [buf]
@@ -57,40 +48,47 @@ symbol = " "
 [bun]
 symbol = " "
 
-# ---- Cleaned Right-Side Modules ----
 [c]
+style = "bold #8aadf4"
 symbol = " "
 format = '[$symbol$version]($style) '
 
 [cpp]
+style = "bold #8aadf4"
 symbol = " "
 format = '[$symbol$version]($style) '
 
 [docker_context]
 symbol = " "
-format = '[$symbol$context]($style) ' # Docker uses $context instead of $version
+format = '[$symbol$context]($style) '
 
 [golang]
+style = "bold #8bd5ca"
 symbol = " "
 format = '[$symbol$version]($style) '
 
 [java]
+style = "bold #ed8796"
 symbol = " "
 format = '[$symbol$version]($style) '
 
 [nodejs]
+style = "bold #a6da95"
 symbol = " "
 format = '[$symbol$version]($style) '
 
 [python]
+style = "bold #8aadf4"
 symbol = " "
 format = '[$symbol$version]($style) '
 
 [ruby]
+style = "bold #ed8796"
 symbol = " "
 format = '[$symbol$version]($style) '
 
 [rust]
+style = "bold #f5a97f"
 symbol = "󱘗 "
 format = '[$symbol$version]($style) '
 # ------------------------------------
@@ -218,3 +216,8 @@ Unknown = " "
 Void = " "
 Windows = "󰍲 "
 Zorin = " "
+
+[cmd_duration]
+min_time = 2000
+format = "[$duration]($style) "
+style = "bold #eed49f" # Macchiato Yellow
