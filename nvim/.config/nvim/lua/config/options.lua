@@ -20,7 +20,6 @@ opt.expandtab = true
 opt.tabstop = 2
 opt.shiftwidth = 2
 
--- FIXED: Use autoindent (copy previous line) but disable smartindent (don't guess)
 opt.autoindent = true
 opt.smartindent = false
 

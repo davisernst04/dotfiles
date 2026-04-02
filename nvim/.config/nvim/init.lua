@@ -19,20 +19,7 @@ require("lazy").setup({
 	spec = {
 		{ import = "plugins" },
 	},
-	ui = { border = "rounded" },
-	change_detection = { notify = false },
-	performance = {
-		rtp = {
-			disabled_plugins = {
-				"gzip",
-				"matchit",
-				"matchparen",
-				"netrwPlugin",
-				"tarPlugin",
-				"tohtml",
-				"tutor",
-				"zipPlugin",
-			},
-		},
+	checker = {
+		enabled = true,
 	},
 })
