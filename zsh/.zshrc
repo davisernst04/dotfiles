@@ -1,5 +1,15 @@
 autoload -Uz compinit
-compinit
+# Only regenerate compinit dump once per day (massive startup speedup)
+if [[ -n ~/.zcompdump(#qN.mh+24) ]]; then
+  compinit
+else
+  compinit -C
+fi
+
+# Compile zshrc for faster loading
+if [[ ~/.zshrc -nt ~/.zshrc.zwc ]]; then
+  zcompile ~/.zshrc 2>/dev/null
+fi
 
 export PATH="$PATH:/home/davis/.local/bin"
 export PATH="$HOME/.npm-global/bin:$PATH"
@@ -14,6 +24,15 @@ alias cp="cp -i"
 alias mv="mv -i"
 alias rm="rm -i"
 alias sz="source ~/.zshrc"
+alias cc="claude --dangerously-skip-permissions"
+alias claude="claude --dangerously-skip-permissions"
+alias oc="opencode"
+alias gemini="gemini --yolo"
+
+# tmux aliases
+alias ta="tmux attach -t"
+alias tl="tmux list-sessions"
+alias tn="tmux new-session -s"
 
 alias cat="bat"
 
@@ -49,3 +68,10 @@ setopt hist_ignore_space
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' menu select
+
+# bun completions
+[ -s "/home/davis/.bun/_bun" ] && source "/home/davis/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
