@@ -27,7 +27,6 @@ alias sz="source ~/.zshrc"
 alias cc="claude --dangerously-skip-permissions"
 alias claude="claude --dangerously-skip-permissions"
 alias oc="opencode"
-alias gemini="gemini --yolo"
 
 # tmux aliases
 alias ta="tmux attach -t"
