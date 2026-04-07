@@ -2,3 +2,4 @@
 *.swp
 kitty/.config/kitty/rofi/hypr-dots/
 .env
+lazy-lock.json
