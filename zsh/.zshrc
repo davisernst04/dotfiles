@@ -33,8 +33,6 @@ alias ta="tmux attach -t"
 alias tl="tmux list-sessions"
 alias tn="tmux new-session -s"
 
-alias cat="bat"
-
 alias ls="eza --icons --group-directories-first"
 alias ll="eza -lh --icons --group-directories-first --git"
 alias la="eza -lah --icons --group-directories-first --git"
