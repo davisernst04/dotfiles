@@ -46,15 +46,15 @@ export FZF_TMUX=1
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
+# source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+# ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
 bindkey '^[[C' forward-char
 
 eval "$(zoxide init zsh)"
 
 eval "$(starship init zsh)"
 
-source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 HISTFILE=~/.zsh_history
 HISTSIZE=50000
@@ -66,7 +66,7 @@ setopt hist_ignore_space
 
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
-zstyle ':completion:*' menu select
+zstyle ':completion:*' menu no
 
 # bun completions
 [ -s "/home/davis/.bun/_bun" ] && source "/home/davis/.bun/_bun"

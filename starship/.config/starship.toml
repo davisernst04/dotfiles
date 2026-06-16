@@ -1,11 +1,8 @@
 add_newline = false 
 
 format = """
-$os$directory$git_branch$git_status$fill$nodejs$python$rust$golang$c$cpp$java$ruby$docker_context
+$os$directory$git_branch$git_status $nodejs$python$rust$golang$c$cpp$java$ruby$docker_context
 $cmd_duration$character"""
-
-[fill]
-symbol = " "
 
 [os]
 disabled = true 
