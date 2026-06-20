@@ -1,7 +1,7 @@
 ---
 description: Lead software architect and task orchestrator
 mode: primary
-model: opencode-go/kimi-k2.7-code
+model: opencode-go/glm-5.2
 temperature: 0.2
 maxSteps: 50
 ---
