@@ -62,6 +62,7 @@ Post-install notes:
 - Create the screenshot directory: `mkdir -p ~/Pictures`
 - tmux plugins are managed by tpm (submodule). Open tmux and press `C-z I` (prefix + I) to install them.
 - Neovim plugins are installed automatically by lazy.nvim on first launch.
+- Put machine-specific shell settings in `~/.zshrc.local` — sourced at the end of `.zshrc`, not tracked by the repo.
 
 ## Uninstalling
 

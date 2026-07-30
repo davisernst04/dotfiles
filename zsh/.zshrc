@@ -48,14 +48,26 @@ export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
 export FZF_TMUX=1
 
 # fzf keybindings (Ctrl-R history, Ctrl-T files, Alt-C cd) and **<Tab> completion
-if [ -f /usr/share/fzf/key-bindings.zsh ]; then
-  source /usr/share/fzf/key-bindings.zsh
-  source /usr/share/fzf/completion.zsh
-elif [ -f ~/.fzf.zsh ]; then
-  source ~/.fzf.zsh
-fi
+# Install path differs between Arch and Debian packages
+_fzf_sourced=0
+for _fzf_dir in /usr/share/fzf /usr/share/doc/fzf/examples; do
+  if [ -f "$_fzf_dir/key-bindings.zsh" ]; then
+    source "$_fzf_dir/key-bindings.zsh"
+    source "$_fzf_dir/completion.zsh"
+    _fzf_sourced=1
+    break
+  fi
+done
+[ "$_fzf_sourced" -eq 0 ] && [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+unset _fzf_dir _fzf_sourced
 
-source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+# zsh-autosuggestions: path differs between Arch, Debian, and manual clones
+for _plugin in /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh \
+               /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
+               ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh; do
+  [ -f "$_plugin" ] && source "$_plugin" && break
+done
+unset _plugin
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
 bindkey '^[[C' forward-char
 # Shift-Tab cycles backwards through the completion menu
@@ -67,10 +79,16 @@ eval "$(zoxide init zsh)"
 
 eval "$(starship init zsh)"
 
-# pyenv: activate shims so `pyenv global` versions take effect
-eval "$(pyenv init -)"
+# pyenv: activate shims so `pyenv global` versions take effect (if installed)
+(( $+commands[pyenv] )) && eval "$(pyenv init -)"
 
-source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# zsh-syntax-highlighting: path differs between Arch, Debian, and manual clones
+for _plugin in /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
+               /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
+               ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh; do
+  [ -f "$_plugin" ] && source "$_plugin" && break
+done
+unset _plugin
 
 HISTFILE=~/.zsh_history
 HISTSIZE=50000
@@ -86,7 +104,7 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' menu select
 
 # fzf-tab: fuzzy completion menu (Tab to trigger, type to filter, Enter to accept)
-source ~/.zsh/plugins/fzf-tab/fzf-tab.plugin.zsh
+[ -f ~/.zsh/plugins/fzf-tab/fzf-tab.plugin.zsh ] && source ~/.zsh/plugins/fzf-tab/fzf-tab.plugin.zsh
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --icons=always $realpath'
 
 # bun completions
@@ -94,3 +112,6 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --icons=alway
 
 export EDITOR=nvim
 export VISUAL=nvim
+
+# Machine-specific overrides (not tracked in the repo)
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
