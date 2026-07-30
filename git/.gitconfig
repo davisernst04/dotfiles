@@ -1,6 +1,6 @@
 [user]
 	email = davis.ernst@outlook.com
-	name = Davis
+	name = Davis Ernst
 [credential "https://github.com"]
 	helper = 
 	helper = !/usr/bin/gh auth git-credential

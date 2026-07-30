@@ -1,6 +1,7 @@
 .DS_Store
 *.swp
-kitty/.config/kitty/rofi/hypr-dots/
+*.zwc
+zsh/.zcompdump
 .env
 lazy-lock.json
 node_modules
