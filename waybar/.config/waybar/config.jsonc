@@ -13,16 +13,16 @@
     "privacy",
     "network",
     "backlight",
-    "pulseaudio",
+    "wireplumber",
     "battery",
     "custom/power"
   ],
-  "pulseaudio": {
+  "wireplumber": {
     "tooltip": false,
     "scroll-step": 5,
     "format": "{icon}  {volume}%",
     "format-muted": "muted",
-    "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
     "format-icons": {
       "default": [
         "",
@@ -32,7 +32,6 @@
     }
   },
   "backlight": {
-    "device": "intel_backlight",
     "format": "{icon}  {percent}%",
     "format-icons": [
       "",
@@ -40,7 +39,6 @@
     ]
   },
   "battery": {
-    "bat": "BAT1",
     "interval": 30,
     "states": {
       "good": 95,
@@ -105,14 +103,14 @@
   "custom/launcher": {
     "format": " ",
     "on-click": "rofi -show drun",
-    "on-click-right": "killall rofi",
+    "on-click-right": "pkill -x rofi",
     "tooltip": false
   },
   "custom/power": {
     "format": "⏻ ",
     "tooltip": false,
-    "on-click": "bash ~/.config/rofi/powermenu.sh",
-    "on-click-right": "killall rofi"
+    "on-click": "$HOME/.config/rofi/powermenu.sh",
+    "on-click-right": "pkill -x rofi"
   },
   "clock": {
     "format": "  {:%b %d, %Y - %I:%M}",
@@ -126,22 +124,13 @@
       "active": "",
       "default": ""
     },
-    "persistent-workspaces": {
-      "*": [
-        1,
-        2,
-        3,
-        4,
-        5
-      ]
-    },
-    "tray": {
-      "icon-size": 21,
-      "spacing": 10
-    }
+    "persistent-workspaces": { "*": 5 }
+  },
+  "tray": {
+    "icon-size": 21,
+    "spacing": 10
   },
   "network": {
-    "interface": "wlan0",
     "format-wifi": "  {essid}({signalStrength}%)",
     "format-ethernet": "  {ipaddr}/{cidr}",
     "format-disconnected": "disconnected",

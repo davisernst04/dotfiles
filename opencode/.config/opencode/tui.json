@@ -10,7 +10,7 @@
     "scrollbar_toggle": "none",
     "username_toggle": "none",
     "status_view": "<leader>s",
-    "tool_details": "none",
+    "tool_details": "<leader>i",
     "session_export": "<leader>x",
     "session_new": "none",
     "session_list": "<leader>l",
@@ -90,7 +90,7 @@
     "history_next": "down",
     "terminal_suspend": "ctrl+z",
     "terminal_title_toggle": "none",
-    "tips_toggle": "<leader>h",
+    "tips_toggle": "none",
     "display_thinking": "none"
   }
 }

@@ -1,0 +1,5 @@
+# Copy to host.conf (ignored by Git) and declare machine-specific settings.
+# monitor = eDP-1, 1920x1080@60, 0x0, 1.5
+# workspace = 1, monitor:eDP-1
+# env = GDK_SCALE,2
+# Keyboard-backlight bindings also belong here because device names vary.

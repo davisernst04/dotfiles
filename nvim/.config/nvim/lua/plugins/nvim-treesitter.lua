@@ -11,22 +11,6 @@ return {
 				install_dir = vim.fn.stdpath("data") .. "/site",
 			})
 
-			local parsers = {
-				"lua",
-				"javascript",
-				"typescript",
-				"tsx",
-				"html",
-				"css",
-				"json",
-				"python",
-				"bash",
-				"scala",
-				"csv",
-				"http",
-			}
-			require("nvim-treesitter").install(parsers):wait(300000)
-
 			vim.api.nvim_create_autocmd("FileType", {
 				pattern = {
 					"lua",

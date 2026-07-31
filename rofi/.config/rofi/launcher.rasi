@@ -1,0 +1,12 @@
+@import "./colors.rasi"
+@import "./fonts.rasi"
+
+window { width: 42%; border: 2px; border-color: @selected; border-radius: 12px; background-color: @background; }
+mainbox { padding: 18px; spacing: 12px; }
+inputbar { padding: 10px; border-radius: 8px; background-color: @background-alt; children: [prompt, entry]; }
+prompt { text-color: @selected; }
+entry { text-color: @foreground; }
+listview { lines: 8; spacing: 6px; scrollbar: false; }
+element { padding: 9px; border-radius: 7px; }
+element selected { background-color: @selected; text-color: @background; }
+element-icon { size: 24px; }

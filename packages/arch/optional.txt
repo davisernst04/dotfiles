@@ -1,0 +1,3 @@
+fastfetch
+btop
+cava

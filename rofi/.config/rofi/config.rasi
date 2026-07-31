@@ -8,4 +8,4 @@ configuration{
     hide-scrollbar: true;
 
 }
-@theme "~/.config/rofi/menu.rasi"
+@theme "~/.config/rofi/launcher.rasi"

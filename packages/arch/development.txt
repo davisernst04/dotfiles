@@ -1,0 +1,6 @@
+nodejs
+npm
+corepack
+python
+mise
+uv

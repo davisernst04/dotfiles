@@ -4,7 +4,7 @@ return {
 		branch = "v3.x",
 		cmd = "Neotree",
 		keys = { { "\\", "<cmd>Neotree toggle<cr>", desc = "NeoTree" } },
-		dependencies = { "MunifTanjim/nui.nvim" },
+		dependencies = { "nvim-lua/plenary.nvim", "nvim-tree/nvim-web-devicons", "MunifTanjim/nui.nvim" },
 		opts = {
 			filesystem = {
 				filtered_items = { visible = true, hide_gitignored = true },

@@ -1,0 +1,283 @@
+#!/bin/sh
+set -eu
+
+repo=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+target=${DOTFILES_TARGET:-"$HOME"}
+dry_run=false
+
+usage() {
+  cat <<'EOF'
+Usage: ./dotfiles [--dry-run] <doctor|check|packages|install-packages|bootstrap|stow|unstow> [profile]
+Profiles: core, development, desktop-hypr, optional, ai-optional, all
+
+bootstrap composes a complete environment:
+  core          core packages and configs
+  development   core + TypeScript/Python packages and core configs
+  desktop-hypr  core + development + desktop packages/configs
+  all           every profile
+
+Package installation only occurs with the explicit install-packages or bootstrap command.
+AUR_HELPER may be set to paru or yay. DOTFILES_TARGET may override the Stow target.
+EOF
+}
+
+validate_profile() {
+  case "${1:-}" in
+    core|development|desktop-hypr|optional|ai-optional|all) ;;
+    *) echo "Unknown profile: ${1:-}" >&2; usage >&2; exit 2 ;;
+  esac
+}
+
+stow_packages_for() {
+  case "$1" in
+    core|development) printf '%s\n' git zsh tmux nvim starship ;;
+    desktop-hypr) printf '%s\n' git zsh tmux nvim starship hypr rofi waybar swaync kitty ;;
+    optional) printf '%s\n' fastfetch btop cava ;;
+    ai-optional) printf '%s\n' opencode ;;
+    all) printf '%s\n' git zsh tmux nvim starship hypr rofi waybar swaync kitty fastfetch btop cava opencode ;;
+  esac
+}
+
+manifest_files_for() {
+  backend=$1
+  profile=$2
+  base="$repo/packages/$backend"
+  case "$profile" in
+    core) printf '%s\n' "$base/core.txt" ;;
+    development) printf '%s\n' "$base/core.txt" "$base/development.txt" ;;
+    desktop-hypr) printf '%s\n' "$base/core.txt" "$base/development.txt" "$base/desktop-hypr.txt" ;;
+    optional) printf '%s\n' "$base/optional.txt" ;;
+    ai-optional) : ;;
+    all) printf '%s\n' "$base/core.txt" "$base/development.txt" "$base/desktop-hypr.txt" "$base/optional.txt" ;;
+  esac
+}
+
+manifest_packages() {
+  backend=$1
+  profile=$2
+  for file in $(manifest_files_for "$backend" "$profile"); do
+    [ -f "$file" ] || continue
+    while IFS= read -r package || [ -n "$package" ]; do
+      case "$package" in ''|'#'*) continue ;; esac
+      case "$package" in *[!A-Za-z0-9@._+-]*) echo "Invalid package name in $file: $package" >&2; exit 1 ;; esac
+      printf '%s\n' "$package"
+    done < "$file"
+  done
+}
+
+commands_for() {
+  case "$1" in
+    core)
+      printf '%s\n' git git-lfs gh stow zsh fzf fd rg eza bat zoxide starship tmux nvim cc curl unzip
+      ;;
+    development)
+      commands_for core
+      printf '%s\n' node npm corepack python mise uv
+      ;;
+    desktop-hypr)
+      commands_for development
+      printf '%s\n' Hyprland hyprpaper hypridle hyprlock hyprpolkitagent kitty rofi waybar swaync swaync-client wpctl brightnessctl xdg-user-dir nautilus nmtui firefox blueman-manager gnome-network-displays hyprshot wl-copy loginctl systemctl pgrep pkill
+      ;;
+    optional) printf '%s\n' fastfetch btop cava ;;
+    ai-optional) printf '%s\n' claude opencode ;;
+    all)
+      commands_for desktop-hypr
+      commands_for optional
+      commands_for ai-optional
+      ;;
+  esac
+}
+
+profile_uses_core() {
+  case "$1" in core|development|desktop-hypr|all) return 0 ;; *) return 1 ;; esac
+}
+
+profile_uses_desktop() {
+  case "$1" in desktop-hypr|all) return 0 ;; *) return 1 ;; esac
+}
+
+prepare_hypr_host() {
+  source_file="$repo/hypr/.config/hypr/host.conf.example"
+  host_file="$repo/hypr/.config/hypr/host.conf"
+  if [ -e "$host_file" ] || [ -L "$host_file" ]; then return; fi
+  if $dry_run; then
+    printf 'would create ignored Hypr host stub: %s\n' "$host_file"
+  else
+    cp "$source_file" "$host_file"
+    printf 'created ignored Hypr host stub: %s\n' "$host_file"
+  fi
+}
+
+doctor() {
+  profile=${1:-core}
+  validate_profile "$profile"
+  status=0
+  for tool in $(commands_for "$profile" | awk '!seen[$0]++'); do
+    if command -v "$tool" >/dev/null 2>&1; then
+      printf 'ok: %s (%s)\n' "$tool" "$(command -v "$tool")"
+    else
+      printf 'missing: %s\n' "$tool"
+      status=1
+    fi
+  done
+
+  if profile_uses_desktop "$profile"; then
+    pictures="$HOME/Pictures/Screenshots"
+    if [ -d "$pictures" ]; then
+      printf 'ok: screenshot directory %s\n' "$pictures"
+    else
+      printf 'missing: screenshot directory %s (create with mkdir -p)\n' "$pictures"
+      status=1
+    fi
+    if [ -f "$HOME/.config/hypr/host.conf" ]; then
+      printf 'ok: Hypr host configuration present\n'
+    else
+      printf 'optional: Hypr host configuration will be created when the desktop profile is stowed\n'
+    fi
+  fi
+
+  if profile_uses_core "$profile"; then
+    if command -v infocmp >/dev/null 2>&1 && infocmp tmux-256color >/dev/null 2>&1; then
+      printf 'ok: tmux-256color terminfo\n'
+    else
+      printf 'missing: tmux-256color terminfo\n'
+      status=1
+    fi
+
+    if command -v locale >/dev/null 2>&1 && locale -a 2>/dev/null | grep -Eqi '^en_US\.utf-?8$'; then
+      printf 'ok: en_US.UTF-8 locale\n'
+    else
+      printf 'missing: en_US.UTF-8 locale\n'
+      status=1
+    fi
+
+    if ! command -v git >/dev/null 2>&1; then
+      printf 'missing: Git unavailable; submodule status not checked\n'
+      status=1
+    elif ! submodules=$(git -C "$repo" submodule status --recursive 2>/dev/null); then
+      printf 'missing: Git submodule status check failed\n'
+      status=1
+    elif printf '%s\n' "$submodules" | grep -q '^-'; then
+      printf 'missing: one or more Git submodules are not initialized\n'
+      status=1
+    else
+      printf 'ok: Git submodules initialized\n'
+    fi
+  fi
+  return "$status"
+}
+
+show_packages() {
+  profile=$1
+  validate_profile "$profile"
+  printf 'official:\n'
+  manifest_packages arch "$profile"
+  printf 'aur:\n'
+  manifest_packages aur "$profile"
+}
+
+select_aur_helper() {
+  if [ -n "${AUR_HELPER:-}" ]; then
+    case "$AUR_HELPER" in paru|yay) ;;
+      *) echo 'AUR_HELPER must be paru or yay' >&2; return 1 ;;
+    esac
+    command -v "$AUR_HELPER" >/dev/null 2>&1 || { echo "AUR helper not found: $AUR_HELPER" >&2; return 1; }
+    printf '%s\n' "$AUR_HELPER"
+    return
+  fi
+  for helper in paru yay; do
+    if command -v "$helper" >/dev/null 2>&1; then printf '%s\n' "$helper"; return; fi
+  done
+  echo 'AUR packages require paru or yay; set AUR_HELPER after reviewing the helper.' >&2
+  return 1
+}
+
+install_packages() {
+  profile=$1
+  validate_profile "$profile"
+  official=$(manifest_packages arch "$profile")
+  aur=$(manifest_packages aur "$profile")
+  official_inline=$(printf '%s\n' "$official" | tr '\n' ' ')
+  aur_inline=$(printf '%s\n' "$aur" | tr '\n' ' ')
+
+  if [ -n "$aur" ] && [ -n "${AUR_HELPER:-}" ]; then
+    case "$AUR_HELPER" in paru|yay) ;; *) echo 'AUR_HELPER must be paru or yay' >&2; return 1 ;; esac
+  fi
+
+  if $dry_run; then
+    [ -z "$official" ] || printf 'would run: sudo pacman -S --needed %s\n' "$official_inline"
+    if [ -n "$aur" ]; then
+      printf 'would run: %s -S --needed %s\n' "${AUR_HELPER:-paru-or-yay}" "$aur_inline"
+    fi
+    return
+  fi
+
+  command -v pacman >/dev/null 2>&1 || { echo 'pacman is required; no packages installed' >&2; exit 1; }
+  command -v sudo >/dev/null 2>&1 || { echo 'sudo is required; no packages installed' >&2; exit 1; }
+  helper=''
+  [ -z "$aur" ] || helper=$(select_aur_helper)
+  [ -z "$official" ] || sudo pacman -S --needed $official
+  [ -z "$aur" ] || "$helper" -S --needed $aur
+}
+
+run_stow() {
+  action=$1
+  profile=$2
+  validate_profile "$profile"
+  if ! command -v stow >/dev/null 2>&1; then
+    if $dry_run; then
+      if [ "$action" = stow ] && profile_uses_desktop "$profile"; then prepare_hypr_host; fi
+      printf 'would run after package installation: stow --dir=%s --target=%s %s\n' "$repo" "$target" "$(stow_packages_for "$profile" | tr '\n' ' ')"
+      printf 'note: Stow is not installed, so link conflicts could not be simulated\n'
+      return
+    fi
+    echo 'stow is required; no configuration changes made' >&2
+    exit 1
+  fi
+  if [ "$action" = stow ] && profile_uses_desktop "$profile"; then prepare_hypr_host; fi
+  if [ ! -d "$target" ]; then
+    $dry_run && { echo "dry-run target does not exist: $target" >&2; exit 1; }
+    mkdir -p "$target"
+  fi
+  set -- stow --dir="$repo" --target="$target" --verbose=1
+  [ "$action" = unstow ] && set -- "$@" --delete
+  if ! $dry_run; then
+    "$@" --simulate $(stow_packages_for "$profile") >/dev/null || {
+      echo 'Stow preflight found a conflict; no changes made.' >&2
+      exit 1
+    }
+  else
+    set -- "$@" --simulate
+    printf 'would run: stow --dir=%s --target=%s --simulate %s\n' "$repo" "$target" "$(stow_packages_for "$profile" | tr '\n' ' ')"
+  fi
+  "$@" $(stow_packages_for "$profile") || {
+    echo 'Stow refused the operation. Resolve the paths above or move them to a timestamped backup:' >&2
+    echo '  backup=$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)' >&2
+    echo 'Restore by moving the backed-up files to their original paths after unstowing.' >&2
+    exit 1
+  }
+}
+
+bootstrap() {
+  profile=$1
+  install_packages "$profile"
+  if $dry_run; then
+    printf 'would run: git -C %s submodule update --init --recursive\n' "$repo"
+  else
+    git -C "$repo" submodule update --init --recursive
+  fi
+  run_stow stow "$profile"
+}
+
+[ "${1:-}" = --dry-run ] && { dry_run=true; shift; }
+command=${1:-}; shift || true
+case "$command" in
+  doctor) doctor "${1:-core}" ;;
+  check) "$repo/tests/run.sh" ;;
+  packages) show_packages "${1:-core}" ;;
+  install-packages) install_packages "${1:-core}" ;;
+  bootstrap) bootstrap "${1:-core}" ;;
+  stow|unstow) run_stow "$command" "${1:-core}" ;;
+  -h|--help|help) usage ;;
+  *) usage >&2; exit 2 ;;
+esac

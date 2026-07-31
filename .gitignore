@@ -3,8 +3,11 @@
 *.zwc
 zsh/.zcompdump
 .env
-lazy-lock.json
+.env.*
+!.env.example
+!.env.*.example
 node_modules
-package.json
-package-lock.json
-bun.lock
+__pycache__/
+*.py[cod]
+.cache/
+hypr/.config/hypr/host.conf
