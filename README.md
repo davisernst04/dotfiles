@@ -121,3 +121,26 @@ The normal `claude` command and `cc` alias retain permission checks; no permissi
 History uses `HIST_IGNORE_SPACE`: prefix sensitive one-off commands with a space, but prefer a password manager or protected environment file. Keep `.env.*` private and commit only `.env.example` or `.env.*.example` templates. Protect an existing history file with `chmod 600 ~/.zsh_history`. Machine shell overrides belong in `~/.zshrc.local`.
 
 tmux uses `C-a` as prefix and retains vim-tmux navigator, yank, extrakto, and theme plugins. TPM and fzf-tab are pinned Git submodules; TPM-managed plugin updates remain explicit with prefix + `I`. OpenCode remote MCP servers and project instructions belong in project-local configuration rather than this global repository.
+
+### tmux restart persistence
+
+`tmux-resurrect` records sessions, windows, pane layouts, working directories, and its conservative set of restorable programs. `tmux-continuum` saves that state every 15 minutes, restores it when a new tmux server starts, and enables its Linux user-service integration so the server can start after reboot. Continuum must remain the final TPM plugin because its periodic save hook uses the status line.
+
+After applying the core profile, install the configured TPM plugins from inside tmux:
+
+```text
+C-a I       install missing plugins
+C-a Ctrl-s  save immediately
+C-a Ctrl-r  restore immediately
+```
+
+Press the prefix first, release it, then press the second key. Confirm automatic saving with:
+
+```sh
+tmux show-options -gqv @continuum-save-interval  # 15
+tmux show-options -gqv @continuum-restore        # on
+tmux show-options -gqv @continuum-boot           # on
+readlink -f "$HOME/.tmux/resurrect/last"
+```
+
+The restore files live under `~/.tmux/resurrect/`. A reboot necessarily terminates running processes: Resurrect rebuilds tmux structure and relaunches only its conservative supported program list rather than replaying every command. Development servers, tests, and arbitrary shell commands are deliberately not auto-relaunched. Pane contents are also not persisted, which avoids saving potentially sensitive terminal output.

@@ -218,6 +218,23 @@ class AuditTests(unittest.TestCase):
         runner = (ROOT / "tests/run.sh").read_text()
         self.assertIn("tmux", runner)
 
+    def test_tmux_sessions_persist_across_restarts(self):
+        config = (ROOT / "tmux/.tmux.conf").read_text()
+        required = [
+            "set -g @plugin 'tmux-plugins/tmux-resurrect'",
+            "set -g @plugin 'tmux-plugins/tmux-continuum'",
+            "set -g @continuum-restore 'on'",
+            "set -g @continuum-save-interval '15'",
+            "set -g @continuum-boot 'on'",
+        ]
+        for setting in required:
+            self.assertIn(setting, config)
+
+        self.assertLess(config.index("tmux-plugins/tmux-resurrect"), config.index("tmux-plugins/tmux-continuum"))
+        self.assertLess(config.index("tmux-plugins/tmux-continuum"), config.index("run '~/.tmux/plugins/tpm/tpm'"))
+        self.assertNotIn("@resurrect-processes ':all:'", config)
+        self.assertNotIn("@resurrect-capture-pane-contents 'on'", config)
+
     def test_zsh_non_tty_interactive_startup_is_clean(self):
         if not shutil.which("zsh"):
             self.skipTest("zsh is unavailable")
