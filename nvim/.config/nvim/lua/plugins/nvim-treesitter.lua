@@ -11,24 +11,44 @@ return {
 				install_dir = vim.fn.stdpath("data") .. "/site",
 			})
 
+			local ts_filetypes = {
+				"lua",
+				"javascript",
+				"javascriptreact",
+				"typescript",
+				"typescriptreact",
+				"html",
+				"css",
+				"json",
+				"python",
+				"bash",
+				"scala",
+				"csv",
+				"http",
+			}
+
+			local function enable_treesitter(bufnr)
+				vim.treesitter.start(bufnr)
+				vim.bo[bufnr].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+			end
+
 			vim.api.nvim_create_autocmd("FileType", {
-				pattern = {
-					"lua",
-					"javascript",
-					"typescript",
-					"tsx",
-					"html",
-					"css",
-					"json",
-					"python",
-					"bash",
-					"scala",
-					"csv",
-					"http",
-				},
-				callback = function()
-					vim.treesitter.start()
-					vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+				pattern = ts_filetypes,
+				callback = function(args)
+					enable_treesitter(args.buf)
+				end,
+			})
+
+			vim.api.nvim_create_autocmd("BufEnter", {
+				callback = function(args)
+					local buf = args.buf
+					if vim.bo[buf].filetype ~= "" or vim.api.nvim_buf_get_name(buf) == "" then
+						return
+					end
+					local ft = vim.filetype.match({ buf = buf })
+					if ft and ft ~= "" then
+						vim.bo[buf].filetype = ft
+					end
 				end,
 			})
 
