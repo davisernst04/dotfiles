@@ -18,8 +18,9 @@ return {
 			local telescope = require("telescope")
 			telescope.setup({
 				extensions = { ["ui-select"] = require("telescope.themes").get_dropdown() },
+				pickers = { find_files = { hidden = true } },
 				defaults = {
-					file_ignore_patterns = { "node_modules", ".git" },
+					file_ignore_patterns = { "^node_modules/", "/node_modules/", "^%.git/", "/%.git/" },
 					vimgrep_arguments = {
 						"rg",
 						"--color=never",
@@ -28,6 +29,9 @@ return {
 						"--line-number",
 						"--column",
 						"--smart-case",
+						"--hidden",
+						"--glob",
+						"!.git",
 					},
 				},
 			})

@@ -21,15 +21,22 @@ return {
 				"css",
 				"json",
 				"python",
-				"bash",
+				"sh",
+				"c",
+				"make",
 				"scala",
 				"csv",
 				"http",
 			}
 
 			local function enable_treesitter(bufnr)
-				vim.treesitter.start(bufnr)
-				vim.bo[bufnr].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+				-- Fresh machines may not have this parser yet. Keep normal editing
+				-- available until parsers are explicitly installed.
+				local ok, parser = pcall(vim.treesitter.get_parser, bufnr)
+				if ok and parser then
+					vim.treesitter.start(bufnr)
+					vim.bo[bufnr].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+				end
 			end
 
 			vim.api.nvim_create_autocmd("FileType", {

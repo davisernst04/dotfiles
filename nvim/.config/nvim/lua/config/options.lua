@@ -18,6 +18,7 @@ opt.cursorline = true
 opt.laststatus = 3
 opt.expandtab = true
 opt.tabstop = 2
+opt.softtabstop = 2
 opt.shiftwidth = 2
 
 opt.autoindent = true
@@ -32,5 +33,20 @@ opt.termguicolors = true
 opt.updatetime = 250
 opt.timeoutlen = 300
 opt.undofile = true
-opt.swapfile = false
+opt.swapfile = true
 opt.clipboard = "unnamedplus"
+
+-- Neovim 0.11+ disables inline diagnostics by default, leaving only sign-column
+-- marks. Show the message for the cursor line; ]d and [d move between them.
+vim.diagnostic.config({
+	virtual_text = { current_line = true },
+	severity_sort = true,
+	float = { border = "rounded" },
+})
+-- Over SSH there is no X11/Wayland clipboard tool, and Neovim only auto-enables
+-- OSC 52 when 'clipboard' is empty, so unnamedplus would leave no provider at all.
+-- Opt in explicitly so yank/paste reach the local Kitty clipboard. Inside tmux,
+-- Neovim's tmux provider already relays through tmux's set-clipboard.
+if vim.env.SSH_TTY and not vim.env.TMUX then
+	vim.g.clipboard = "osc52"
+end
