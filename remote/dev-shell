@@ -1,0 +1,49 @@
+#!/bin/bash
+# Activate libraries and compiler hooks before starting the portable login shell.
+set -e
+# A pane or session may outlive the directory it was started in.
+if ! builtin pwd -P >/dev/null 2>&1; then
+  builtin cd -- "$HOME" || exit 1
+fi
+manager="$HOME/.local/share/dev-env-manager"
+prefix="$HOME/.local/share/dev-env"
+check_only=false
+if [[ ${1:-} == --check ]]; then
+  check_only=true
+  shift
+fi
+fallback() {
+  local reason=$1
+  shift
+  $check_only && exit 1
+  printf 'Portable dev environment unavailable (%s); using system Bash.\n' "$reason" >&2
+  # This also stops older unconditional SSH hooks from launching us again.
+  export DEV_ENV_DISABLE=1
+  unset DEV_ENV_ACTIVE
+  exec /bin/bash -l "$@"
+}
+# Shared home directories can expose this installation on other CPU types.
+if [[ $(uname -s) != Linux || $(uname -m) != x86_64 ]]; then
+  fallback "this bundle requires Linux x86_64; host is $(uname -s)/$(uname -m)" "$@"
+fi
+for executable in "$manager/bin/micromamba" "$prefix/bin/zsh"; do
+  if [[ ! -x $executable ]] || ! "$executable" --version >/dev/null 2>&1; then
+    fallback "$executable cannot run" "$@"
+  fi
+done
+$check_only && exit 0
+export MAMBA_ROOT_PREFIX="$HOME/.local/share/dev-env-manager"
+export DEV_ENV_PREFIX="$HOME/.local/share/dev-env"
+if ! hook=$("$MAMBA_ROOT_PREFIX/bin/micromamba" --no-rc shell hook --shell bash --root-prefix "$MAMBA_ROOT_PREFIX"); then
+  fallback 'activation hook failed' "$@"
+fi
+if ! eval "$hook" || ! micromamba activate "$DEV_ENV_PREFIX"; then
+  fallback 'activation failed' "$@"
+fi
+export DEV_ENV_ACTIVE=1
+export CC="${CC:-$DEV_ENV_PREFIX/bin/cc}"
+export CXX="${CXX:-$DEV_ENV_PREFIX/bin/c++}"
+export PATH="$HOME/.local/share/dev-env-neovim/bin:$HOME/.local/bin:$PATH"
+export SHELL="$DEV_ENV_PREFIX/bin/zsh"
+export TERMINFO_DIRS="$HOME/.terminfo:$DEV_ENV_PREFIX/share/terminfo:/usr/share/terminfo:/lib/terminfo"
+exec "$SHELL" -l "$@"
