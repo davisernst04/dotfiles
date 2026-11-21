@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+: "${XDG_RUNTIME_DIR:?Desktop session runtime directory is unset}"
+umask 077
+
+# Every desktop lock entry point shares this lock for the locker's lifetime.
+# Duplicate requests succeed immediately without launching another hyprlock.
+exec flock --nonblock --conflict-exit-code 0 \
+    "$XDG_RUNTIME_DIR/hyprlock-${HYPRLAND_INSTANCE_SIGNATURE:-default}.lock" \
+    hyprlock --grace 0

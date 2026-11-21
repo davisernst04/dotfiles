@@ -1,0 +1,33 @@
+#!/bin/sh
+set -eu
+
+# Text clipboard history through cliphist.
+#   clipboard-history --watch   record copies (started once per login)
+#   clipboard-history           pick an entry with rofi and copy it again
+# Without cliphist installed, the watcher exits quietly and the picker says so.
+
+if ! command -v cliphist >/dev/null 2>&1; then
+    [ "${1:-}" = --watch ] && exit 0
+    notify-send "Clipboard history" "Install cliphist to enable clipboard history." 2>/dev/null || true
+    exit 0
+fi
+
+case "${1:-}" in
+    --watch)
+        : "${XDG_RUNTIME_DIR:?Desktop session runtime directory is unset}"
+        # One recorder per compositor, even if startup or a manual run repeats.
+        exec flock --nonblock --conflict-exit-code 0 \
+            "$XDG_RUNTIME_DIR/cliphist-${HYPRLAND_INSTANCE_SIGNATURE:-default}.lock" \
+            wl-paste --type text --watch cliphist store
+        ;;
+    "")
+        selection=$(cliphist list |
+            rofi -dmenu -i -display-columns 2 -p clipboard \
+                -theme ~/.config/hypr/rofi-launcher.rasi) || exit 0
+        printf '%s\n' "$selection" | cliphist decode | wl-copy
+        ;;
+    *)
+        printf 'Usage: %s [--watch]\n' "$0" >&2
+        exit 2
+        ;;
+esac

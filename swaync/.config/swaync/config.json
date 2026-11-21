@@ -16,17 +16,24 @@
   "notification-window-width": 350,
   "notification-icon-size": 60,
   "notification-body-image-height": 180,
-  "notification-body-image-width": 180,
+  "notification-body-image-width": 200,
   "timeout": 12,
   "timeout-low": 6,
-  "timeout-critical": 1,
+  "timeout-critical": 0,
   "fit-to-screen": true,
   "keyboard-shortcuts": true,
-  "image-visibility": "when available",
-  "transition-time": 200,
+  "image-visibility": "when-available",
+  "transition-time": 0,
   "hide-on-clear": false,
   "hide-on-action": true,
   "script-fail-notify": true,
+  "scripts": {
+    "focus-notification-source": {
+      "exec": "$HOME/.config/hypr/scripts/notification-focus",
+      "app-name": ".*",
+      "run-on": "action"
+    }
+  },
   "widgets": [
     "mpris",
     "title",
@@ -47,8 +54,7 @@
     },
 
     "mpris": {
-      "image-size": 80,
-      "image-radius": 0
+      "image-size": 80
     },
     "volume": {
       "label": "󰕾 "
@@ -84,13 +90,8 @@
         },
 
         {
-          "label": "󰀟",
-          "command": "gnome-network-displays"
-        },
-
-        {
           "label": "",
-          "command": "hyprlock"
+          "command": "$HOME/.config/hypr/scripts/lock-session"
         }
       ]
     }

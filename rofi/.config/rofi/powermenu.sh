@@ -8,7 +8,7 @@ confirmed=$(printf '%s\n' No Yes | rofi -dmenu -p "Confirm $choice?" -theme "$th
 
 case "$choice" in
   Lock) loginctl lock-session ;;
-  Logout) hyprctl dispatch exit ;;
+  Logout) hyprctl dispatch 'hl.dsp.exit()' ;;
   Suspend) loginctl lock-session && systemctl suspend ;;
   Reboot) systemctl reboot ;;
   Poweroff) systemctl poweroff ;;

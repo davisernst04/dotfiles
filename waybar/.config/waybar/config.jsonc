@@ -3,6 +3,7 @@
   "modules-left": [
     "custom/launcher",
     "cpu",
+    "memory",
     "clock"
   ],
   "modules-center": [
@@ -18,6 +19,7 @@
     "custom/power"
   ],
   "wireplumber": {
+    "max-volume": 100,
     "tooltip": false,
     "scroll-step": 5,
     "format": "{icon}  {volume}%",
@@ -66,7 +68,7 @@
   "privacy": {
     "icon-spacing": 10,
     "icon-size": 18,
-    "transition-duration": 250,
+    "transition-duration": 0,
     "tooltip": false,
     "modules": [
       {

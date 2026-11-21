@@ -1,0 +1,9 @@
+#!/bin/sh
+# Succeed when a mains adapter is online; fail on battery or when the machine
+# reports no adapter at all, so desktops keep their normal idle policy.
+root=${POWER_SUPPLY_ROOT:-/sys/class/power_supply}
+for supply in "$root"/*; do
+    [ "$(cat "$supply/type" 2>/dev/null)" = Mains ] || continue
+    [ "$(cat "$supply/online" 2>/dev/null)" = 1 ] && exit 0
+done
+exit 1

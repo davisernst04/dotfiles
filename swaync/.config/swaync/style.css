@@ -1,8 +1,8 @@
 * {
   all: unset;
   font-size: 14px;
-  font-family: "Ubuntu Nerd Font";
-  transition: 200ms;
+  font-family: "JetBrainsMono Nerd Font";
+  transition: none;
 }
 
 trough highlight {

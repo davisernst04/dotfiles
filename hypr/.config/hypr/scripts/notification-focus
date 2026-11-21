@@ -1,0 +1,213 @@
+#!/usr/bin/python3
+"""Remember notification senders and return to their Hyprland window/tmux pane."""
+
+import fcntl
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+
+def command(*args):
+    try:
+        return subprocess.run(args, capture_output=True, text=True, timeout=2,
+                              check=True).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def ancestors(pid):
+    result = []
+    while pid > 1 and pid not in result:
+        result.append(pid)
+        try:
+            # The command name in /proc/PID/stat can contain spaces or ')'.
+            pid = int(Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[1])
+        except (OSError, ValueError, IndexError):
+            break
+    return result
+
+
+def environment(pid):
+    try:
+        return dict(item.split("=", 1) for item in
+                    Path(f"/proc/{pid}/environ").read_bytes().decode(errors="replace").split("\0")
+                    if "=" in item)
+    except OSError:
+        return {}
+
+
+def windows():
+    return json.loads(command("hyprctl", "-j", "clients") or "[]")
+
+
+def tmux(socket, *args):
+    return command("tmux", "-S", socket, *args)
+
+
+def tmux_clients(socket):
+    rows = tmux(socket, "list-clients", "-F",
+                "#{client_pid}\t#{client_name}\t#{session_id}\t#{pane_id}\t#{client_activity}")
+    return [line.split("\t") for line in rows.splitlines() if len(line.split("\t")) == 5]
+
+
+def capture(pid, app_name=""):
+    # notify-send may exit as soon as the server replies; read its environment first.
+    env = environment(pid)
+    parents = ancestors(pid)
+    origin = {}
+    clients = windows()
+    for parent in parents:
+        matches = [w for w in clients if w["pid"] == parent]
+        if len(matches) == 1:
+            origin["address"] = matches[0]["address"]
+            origin["pid"] = parent
+            break
+
+    socket = env.get("TMUX", "").rsplit(",", 2)[0]
+    pane = env.get("TMUX_PANE", "")
+    if socket and pane:
+        origin.update(socket=socket, pane=pane)
+        return origin
+
+    # A terminal-protocol notification is sent over D-Bus by Kitty itself.
+    # Find its tmux client, then prefer a uniquely matching application pane.
+    socket = socket or f"/tmp/tmux-{os.getuid()}/default"
+    attached = [c for c in tmux_clients(socket) if pid in ancestors(int(c[0]))]
+    if len(attached) == 1:
+        client = attached[0]
+        rows = tmux(socket, "list-panes", "-s", "-t", client[2], "-F",
+                    "#{pane_id}\t#{pane_current_command}")
+        matches = [row.split("\t")[0] for row in rows.splitlines()
+                   if row.partition("\t")[2].casefold() == app_name.casefold()]
+        pane = matches[0] if len(matches) == 1 else client[3]
+        origin.update(socket=socket, pane=pane, client=client[1])
+    return origin
+
+
+def activate(origin):
+    address = origin.get("address")
+    if origin.get("pane"):
+        socket, pane = origin["socket"], origin["pane"]
+        target = tmux(socket, "display-message", "-p", "-t", pane,
+                      "#{session_id}\t#{window_id}")
+        if target:
+            session, window = target.split("\t")
+            clients = tmux_clients(socket)
+            clients.sort(key=lambda c: (c[1] == origin.get("client"), c[2] == session, int(c[4])),
+                         reverse=True)
+            if clients:
+                client = clients[0]
+                tmux(socket, "switch-client", "-c", client[1], "-t", session)
+                tmux(socket, "select-window", "-t", window)
+                tmux(socket, "select-pane", "-t", pane)
+                parents = ancestors(int(client[0]))
+                matches = [w for w in windows() if w["pid"] in parents]
+                if len(matches) == 1:
+                    address = matches[0]["address"]
+    # Verify that the saved window still exists before focusing it.
+    if address and any(w["address"] == address for w in windows()):
+        command("swaync-client", "--close-panel")
+        command("hyprctl", "dispatch",
+                f"hl.dsp.focus({{window = {json.dumps('address:' + address)}}})")
+
+
+def runtime_dir():
+    directory = Path(os.environ["XDG_RUNTIME_DIR"]) / "notification-focus"
+    directory.mkdir(mode=0o700, exist_ok=True)
+    return directory
+
+
+def watch():
+    from gi.repository import Gio, GLib
+
+    directory = runtime_dir()
+    lock = (directory / "watch.lock").open("w")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        return
+    try:
+        origins = json.loads((directory / "origins.json").read_text())
+    except (OSError, ValueError):
+        origins = {}
+    pending = {}
+    query = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+    monitor = Gio.DBusConnection.new_for_address_sync(
+        os.environ["DBUS_SESSION_BUS_ADDRESS"],
+        Gio.DBusConnectionFlags.AUTHENTICATION_CLIENT |
+        Gio.DBusConnectionFlags.MESSAGE_BUS_CONNECTION, None, None)
+
+    def save():
+        # Keep expired popups: they can still be clicked in the control center.
+        while len(origins) > 512:
+            del origins[next(iter(origins))]
+        temporary = directory / "origins.tmp"
+        temporary.write_text(json.dumps(origins))
+        temporary.replace(directory / "origins.json")
+
+    def process(message):
+        if message.get_member() == "NameOwnerChanged":
+            # A restarted notification server can reuse IDs for different apps.
+            origins.clear()
+            pending.clear()
+            save()
+        elif message.get_member() == "Notify" and message.get_interface() == "org.freedesktop.Notifications":
+            try:
+                body = message.get_body().unpack()
+                pid = body[6].get("sender-pid")
+                if not pid:
+                    credentials = query.call_sync(
+                        "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus",
+                        "GetConnectionUnixProcessID", GLib.Variant("(s)", (message.get_sender(),)),
+                        GLib.VariantType.new("(u)"), Gio.DBusCallFlags.NONE, 1000, None)
+                    pid = credentials.unpack()[0]
+                app_name = body[0]
+                pending[(message.get_sender(), message.get_serial())] = capture(pid, app_name)
+                while len(pending) > 512:
+                    del pending[next(iter(pending))]
+            except (GLib.Error, OSError, ValueError):
+                pass
+        elif message.get_message_type() == Gio.DBusMessageType.METHOD_RETURN:
+            key = (message.get_destination(), message.get_reply_serial())
+            if key in pending:
+                ident = message.get_body().unpack()[0]
+                origins[str(ident)] = pending.pop(key)
+                save()
+
+    def receive(connection, message, incoming, data):
+        # GDBus filters share an I/O thread. Resolve credentials on the main
+        # loop so a synchronous D-Bus call cannot block that same I/O thread.
+        if incoming:
+            GLib.idle_add(process, message)
+            if message.get_message_type() == Gio.DBusMessageType.METHOD_CALL:
+                # Monitoring a call must not send an UnknownMethod reply.
+                return None
+        return message
+
+    monitor.add_filter(receive, None)
+    monitor.call_sync(
+        "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus.Monitoring",
+        "BecomeMonitor", GLib.Variant("(asu)", ([
+            "type='method_call',interface='org.freedesktop.Notifications',member='Notify'",
+            "type='method_return',sender='org.freedesktop.Notifications'",
+            "type='signal',interface='org.freedesktop.DBus',member='NameOwnerChanged',arg0='org.freedesktop.Notifications'",
+        ], 0)), None, Gio.DBusCallFlags.NONE, 2000, None)
+    GLib.MainLoop().run()
+
+
+def main():
+    if sys.argv[1:] == ["--watch"]:
+        watch()
+        return
+    ident = os.environ.get("SWAYNC_ID", "")
+    try:
+        origins = json.loads((runtime_dir() / "origins.json").read_text())
+        activate(origins.get(ident, {}))
+    except (OSError, ValueError):
+        pass
+
+
+if __name__ == "__main__":
+    main()

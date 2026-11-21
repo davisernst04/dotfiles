@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+# Update the service manager before starting anything that uses Wayland.
+systemctl --user import-environment WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE DISPLAY
+systemctl --user restart hypridle.service
+
+# This session does not activate graphical-session.target. Honor the user's
+# optional dictation service without enabling it on machines that omit it.
+if systemctl --user is-enabled --quiet voxtype.service 2>/dev/null; then
+    systemctl --user restart voxtype.service
+fi

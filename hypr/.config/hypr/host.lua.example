@@ -1,0 +1,10 @@
+-- Copy to host.lua (ignored by Git) for machine-specific Lua settings.
+-- The shared configuration already supplies a generic monitor fallback.
+-- Uncomment and adapt connector names, modes and workspace rules as needed:
+-- hl.monitor({output = "eDP-1", mode = "preferred", position = "auto", scale = 1})
+-- hl.workspace_rule({workspace = "1", monitor = "eDP-1"})
+-- Connector-specific scaling and keyboard-backlight bindings also belong here.
+-- With fractional scaling, pair GDK_SCALE with zero XWayland scaling so
+-- XWayland GTK apps render crisply instead of being scaled twice:
+-- hl.env("GDK_SCALE", "2")
+-- hl.config({["xwayland.force_zero_scaling"] = true})

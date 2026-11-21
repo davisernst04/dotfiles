@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+
+device='tpacpi::kbd_backlight'
+current=$(brightnessctl -d "$device" get)
+maximum=$(brightnessctl -d "$device" max)
+brightnessctl -q -d "$device" set "$(( (current + 1) % (maximum + 1) ))"

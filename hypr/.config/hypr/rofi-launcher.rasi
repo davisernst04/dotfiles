@@ -1,0 +1,112 @@
+/* Compact Catppuccin-style application launcher. */
+configuration {
+    modi:                   "drun";
+    show-icons:             true;
+    display-drun:           "";
+    drun-display-format:    "{name}";
+    matching:               "fuzzy";
+    sort:                   true;
+    sorting-method:         "fzf";
+    disable-history:        false;
+    hide-scrollbar:         true;
+    click-to-exit:          true;
+}
+
+* {
+    bg:                     #11111beF;
+    surface:                #1e1e2eFF;
+    surface-hover:          #313244FF;
+    text:                   #cdd6f4FF;
+    muted:                  #7f849cFF;
+    accent:                 #89b4faFF;
+    font:                   "JetBrainsMono Nerd Font 11";
+    background-color:       transparent;
+    text-color:             @text;
+}
+
+window {
+    location:               center;
+    anchor:                 center;
+    width:                  620px;
+    border:                 1px;
+    border-color:           #45475aFF;
+    border-radius:          16px;
+    background-color:       @bg;
+}
+
+mainbox {
+    padding:                18px;
+    spacing:                14px;
+    children:               [ inputbar, message, listview ];
+}
+
+inputbar {
+    padding:                12px 14px;
+    spacing:                10px;
+    border-radius:          10px;
+    background-color:       @surface;
+    children:               [ textbox-prompt-colon, entry ];
+}
+
+textbox-prompt-colon {
+    expand:                 false;
+    str:                    "󰍉";
+    text-color:             @accent;
+}
+
+entry {
+    expand:                 true;
+    horizontal-align:       0.0;
+}
+
+message {
+    padding:                10px 12px;
+    border-radius:          10px;
+    background-color:       @surface;
+}
+
+textbox {
+    text-color:             @muted;
+}
+
+listview {
+    lines:                  7;
+    columns:                1;
+    fixed-height:           true;
+    cycle:                  true;
+    dynamic:                true;
+    spacing:                5px;
+    scrollbar:              false;
+}
+
+element {
+    padding:                10px 12px;
+    spacing:                12px;
+    border-radius:          10px;
+}
+
+element normal.normal {
+    background-color:       transparent;
+    text-color:             @text;
+}
+
+element alternate.normal {
+    background-color:       transparent;
+    text-color:             @text;
+}
+
+element selected.normal {
+    background-color:       @surface-hover;
+    text-color:             @accent;
+}
+
+element-icon {
+    size:                   30px;
+    background-color:       transparent;
+}
+
+element-text {
+    vertical-align:         0.5;
+    background-color:       transparent;
+    text-color:             inherit;
+}
