@@ -17,3 +17,9 @@ zoxide
 starship
 tmux
 neovim
+openssh
+rsync
+man-db
+man-pages
+git-delta
+lazygit

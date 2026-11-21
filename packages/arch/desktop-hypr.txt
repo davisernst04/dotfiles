@@ -12,9 +12,15 @@ brightnessctl
 xdg-user-dirs
 nautilus
 networkmanager
+wireless-regdb
 procps-ng
+python-gobject
+util-linux
 firefox
 blueman
 ttf-jetbrains-mono-nerd
 hyprshot
 wl-clipboard
+cliphist
+libnotify
+noto-fonts-emoji

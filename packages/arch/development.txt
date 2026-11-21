@@ -4,3 +4,13 @@ corepack
 python
 mise
 uv
+tree-sitter-cli
+clang
+gdb
+bear
+valgrind
+strace
+shellcheck
+shfmt
+ast-grep
+hyperfine
