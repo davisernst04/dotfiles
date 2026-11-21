@@ -2,10 +2,22 @@
 set -eu
 repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 PYTHONDONTWRITEBYTECODE=1 python3 "$repo_dir/tests/test_audit.py"
+PYTHONDONTWRITEBYTECODE=1 python3 "$repo_dir/tests/test_workflow.py"
+PYTHONDONTWRITEBYTECODE=1 python3 "$repo_dir/tests/test_desktop.py"
+PYTHONDONTWRITEBYTECODE=1 python3 "$repo_dir/tests/test_notifications.py"
 
-sh -n "$repo_dir/dotfiles" "$repo_dir/tests/run.sh" \
+# `sh -n a b` checks only `a` (the rest become its arguments): check each file.
+for script in "$repo_dir/dotfiles" "$repo_dir/tests/run.sh" \
+  "$repo_dir/tmux/.tmux/scripts/session-picker" \
+  "$repo_dir/hypr/.config/hypr/scripts/lock-session" \
+  "$repo_dir/hypr/.config/hypr/scripts/start-session-services" \
+  "$repo_dir/hypr/.config/hypr/scripts/clipboard-history" \
+  "$repo_dir/hypr/.config/hypr/scripts/on-ac-power" \
   "$repo_dir/rofi/.config/rofi/powermenu.sh" \
-  "$repo_dir/waybar/.config/waybar/waybar.sh"
+  "$repo_dir/waybar/.config/waybar/waybar.sh" \
+  "$repo_dir/system/dev-audit-2026-11.sh"; do
+  sh -n "$script"
+done
 
 if command -v zsh >/dev/null 2>&1; then
   zsh -n "$repo_dir/zsh/.zshrc"
@@ -19,10 +31,16 @@ else
   echo "skip: Lua syntax (luac missing)"
 fi
 
+if command -v nvim >/dev/null 2>&1; then
+  nvim --headless -u NONE -i NONE -l "$repo_dir/tests/test_editor.lua"
+else
+  echo "skip: editor callbacks (nvim missing)"
+fi
+
 if command -v tmux >/dev/null 2>&1; then
   socket="dotfiles-check-$$"
   tmux -L "$socket" -f "$repo_dir/tmux/.tmux.conf" new-session -d 'sleep 3'
-  [ "$(tmux -L "$socket" show-options -gv prefix)" = "C-a" ]
+  [ "$(tmux -L "$socket" show-options -gv prefix)" = "C-z" ]
   tmux -L "$socket" kill-server 2>/dev/null || true
 else
   echo "skip: tmux config load (tmux missing)"
