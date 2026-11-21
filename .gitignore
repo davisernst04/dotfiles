@@ -20,6 +20,7 @@ ssh/.ssh/*
 !ssh/.ssh/config
 agents/.claude/*
 !agents/.claude/CLAUDE.md
+!agents/.claude/hooks/
 agents/.codex/*
 !agents/.codex/AGENTS.md
 git/.config/git/*
