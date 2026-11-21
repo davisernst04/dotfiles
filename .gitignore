@@ -11,3 +11,16 @@ __pycache__/
 *.py[cod]
 .cache/
 hypr/.config/hypr/host.conf
+hypr/.config/hypr/host.lua
+
+# These packages target directories that hold keys, credentials, and agent
+# transcripts. Track only the intended files, even if a directory was ever
+# folded into the repository by Stow.
+ssh/.ssh/*
+!ssh/.ssh/config
+agents/.claude/*
+!agents/.claude/CLAUDE.md
+agents/.codex/*
+!agents/.codex/AGENTS.md
+git/.config/git/*
+!git/.config/git/ignore
