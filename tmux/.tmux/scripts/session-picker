@@ -1,0 +1,38 @@
+#!/bin/sh
+set -eu
+
+if ! pwd -P >/dev/null 2>&1; then
+  cd -- "$HOME"
+fi
+
+case "${1:-}" in
+  projects)
+    dir=$({
+      zoxide query -l 2>/dev/null || true
+      for root in "$HOME" "$HOME/Code"; do
+        [ ! -d "$root" ] || fd -t d --max-depth 1 . "$root" 2>/dev/null
+      done
+    } | awk '!seen[$0]++' | fzf --reverse) || exit 0
+    [ -n "$dir" ] && [ -d "$dir" ] || exit 0
+    [ "$dir" = / ] || dir=${dir%/}
+    base=$(basename -- "$dir" | tr -cs '[:alnum:]_-' '_')
+    hash=$(printf %s "$dir" | cksum | awk '{print $1}')
+    name="${base}_${hash}"
+    if ! tmux has-session -t "=$name" 2>/dev/null; then
+      tmux new-session -d -s "$name" -c "$dir" || tmux has-session -t "=$name"
+    fi
+    exec tmux switch-client -t "=$name"
+    ;;
+  sessions)
+    # Select using stable IDs; names may contain spaces, quotes, or regex syntax.
+    selection=$(tmux list-sessions -F '#{session_id} #{session_name}' |
+      awk -v current="${2:-}" '$1 != current' |
+      fzf --reverse --with-nth=2..) || exit 0
+    [ -n "$selection" ] || exit 0
+    exec tmux switch-client -t "${selection%% *}"
+    ;;
+  *)
+    printf 'Usage: %s projects|sessions [current-session-id]\n' "$0" >&2
+    exit 2
+    ;;
+esac

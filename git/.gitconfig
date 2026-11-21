@@ -12,6 +12,16 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+[core]
+	# delta when it is installed, otherwise Git's usual less pager, so this
+	# file also works on machines and remote accounts without delta.
+	pager = command -v delta >/dev/null 2>&1 && exec delta || exec less
+[interactive]
+	diffFilter = command -v delta >/dev/null 2>&1 && exec delta --color-only || exec cat
+[delta]
+	# n/N jump between files; syntax colours follow BAT_THEME from the shell.
+	navigate = true
+	line-numbers = true
 [init]
 	defaultBranch = main
 [fetch]
@@ -22,7 +32,19 @@
 	autoSetupRemote = true
 [rerere]
 	enabled = true
+[rebase]
+	# fixup!/squash! commits land in place, a dirty tree is stashed around the
+	# rebase, and stacked branches follow the commits they point at.
+	autoSquash = true
+	autoStash = true
+	updateRefs = true
+[branch]
+	sort = -committerdate
+[commit]
+	# Show the staged diff below the message while writing it.
+	verbose = true
 [merge]
 	conflictStyle = zdiff3
 [diff]
 	algorithm = histogram
+	colorMoved = default

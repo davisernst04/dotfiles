@@ -65,6 +65,7 @@ symbol = " "
 format = '[$symbol$version]($style) '
 
 [python]
+disabled = true
 style = "bold #8aadf4"
 symbol = " "
 format = '[$symbol$version]($style) '

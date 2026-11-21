@@ -1,0 +1,18 @@
+# Global ignores, read by Git from ~/.config/git/ignore without extra config.
+# Keep project-specific rules in each repository's .gitignore.
+
+# Editors and OS
+*.swp
+*.swo
+.DS_Store
+
+# Per-machine agent state
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Generated C tooling (bear, clangd)
+compile_commands.json
+.cache/clangd/
+
+# Local runtime overrides (mise's per-user file)
+mise.local.toml
