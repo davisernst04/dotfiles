@@ -11,7 +11,11 @@ setopt extendedglob
 # Check completion directories on first launch and once per day. compinit may
 # reuse an unchanged dump, so refresh its timestamp after a successful check.
 if [[ ! -r ~/.zcompdump || -n ~/.zcompdump(#qN.mh+24) ]]; then
-  compinit && [[ -f ~/.zcompdump ]] && command touch ~/.zcompdump
+  _compinit_flags=()
+  # Without a terminal, skip insecure completions instead of prompting.
+  [[ -t 0 ]] || _compinit_flags=(-i)
+  compinit "${_compinit_flags[@]}" && [[ -f ~/.zcompdump ]] && command touch ~/.zcompdump
+  unset _compinit_flags
 else
   compinit -C
 fi

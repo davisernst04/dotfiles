@@ -21,11 +21,17 @@ class ShellTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
             (home / ".zshrc").symlink_to(ROOT / "zsh/.zshrc")
-            env = dict(os.environ, HOME=directory, ZDOTDIR=directory)
+            insecure = home / "insecure-completions"
+            insecure.mkdir()
+            insecure.chmod(0o777)
+            (insecure / "_dotfiles_insecure").write_text("#compdef dotfiles-insecure\n")
+            (home / ".zshenv").write_text('fpath=("$HOME/insecure-completions" $fpath)\n')
+            env = dict(os.environ, HOME=directory, ZDOTDIR=directory, TERM="xterm-256color")
 
             def start():
                 result = subprocess.run(
-                    ["zsh", "-i", "-c", "exit"], cwd=directory, env=env,
+                    ["zsh", "-i", "-c", '[[ -z ${_comps[dotfiles-insecure]} ]]'],
+                    cwd=directory, env=env, stdin=subprocess.DEVNULL,
                     capture_output=True, text=True, timeout=20,
                 )
                 self.assertEqual(result.returncode, 0, result.stderr)
