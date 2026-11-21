@@ -4,9 +4,11 @@
 repo="$HOME/dotfiles"
 [ -d "$repo/.git" ] || exit 0
 before=$(git -C "$repo" rev-parse HEAD) || exit 0
+limit=""
+command -v timeout >/dev/null && limit="timeout 20" # stock macOS has no timeout
 
 if ! out=$(GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=5" \
-    timeout 20 git -C "$repo" pull --ff-only --quiet 2>&1); then
+    $limit git -C "$repo" pull --ff-only --quiet 2>&1); then
   echo "Note: could not update ~/dotfiles (pull --ff-only failed): $(echo "$out" | head -1)"
   exit 0
 fi
