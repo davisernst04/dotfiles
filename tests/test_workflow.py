@@ -25,7 +25,10 @@ class ShellTests(unittest.TestCase):
             insecure.mkdir()
             insecure.chmod(0o777)
             (insecure / "_dotfiles_insecure").write_text("#compdef dotfiles-insecure\n")
-            (home / ".zshenv").write_text('fpath=("$HOME/insecure-completions" $fpath)\n')
+            # Ubuntu's global zshrc would initialize completions before ours.
+            (home / ".zshenv").write_text(
+                'skip_global_compinit=1\nfpath=("$HOME/insecure-completions" $fpath)\n'
+            )
             env = dict(os.environ, HOME=directory, ZDOTDIR=directory, TERM="xterm-256color")
 
             def start():
