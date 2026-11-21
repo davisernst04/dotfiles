@@ -24,3 +24,7 @@ agents/.codex/*
 !agents/.codex/AGENTS.md
 git/.config/git/*
 !git/.config/git/ignore
+
+# Stray backups left by tools and agents before an edit.
+*.t3-capture-backup-*
+*.before-*
